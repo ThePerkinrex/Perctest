@@ -50,7 +50,19 @@ def decor_results(r):
 
 def get_lines_around(filename, lineno):
     flines = open(filename, mode='r').readlines()
-    return str(lineno) + ('|' + flines[lineno-1])
+    padding = 5
+    # Decorate it
+    r0 = ''
+    r1 = ' '*(padding-len('>' + str(lineno)))+'>'+str(lineno)+('|' + flines[lineno-1])
+    r2 = ''
+    if lineno < len(flines) and lineno == 1:
+        r2 = ' '*(padding-len(str(lineno+1)))+str(lineno+1)+('|' + flines[lineno])
+    elif lineno == len(flines) and lineno > 1:
+        r0 = ' '*(padding-len(str(lineno-1)))+str(lineno-1)+('|' + flines[lineno-2])
+    else:
+        r2 = ' '*(padding-len(str(lineno+1)))+str(lineno+1)+('|' + flines[lineno])
+        r0 = ' '*(padding-len(str(lineno-1)))+str(lineno-1)+('|' + flines[lineno-2])
+    return r0 + r1 + r2
 
 def r_contains(r, w):
     res = False
@@ -59,6 +71,21 @@ def r_contains(r, w):
             res = True
             break
     return res
+
+def removentests(l, f=True):
+    i = 0
+    while i < len(l):
+        if f:
+            if not l[i].startswith('test_'):
+                l.remove(l[i])
+            else:
+                i+=1
+        else:
+            if not l[i][0].startswith('test_'):
+                l.remove(l[i])
+            else:
+                i+=1
+    return l
 
 def test_cases(a):
     test_caser = []
@@ -72,7 +99,7 @@ def test_cases(a):
             if tmethod[0].startswith('test_'):
                 tests_run += 1
                 getattr(a, tmethod[0])()
-                print("Result for " + tmethod[0] + " in " + a.__class__.__name__ + ": " + str(decor_results(currtestr)))
+                #print("Result for " + tmethod[0] + " in " + a.__class__.__name__ + ": " + str(decor_results(currtestr)))
                 test_caser.append(currtestr.copy())
                 if r_contains(currtestr, 1):
                     ok = False
@@ -86,11 +113,12 @@ def main():
     tests = os.listdir()
     i = 0
     # print(tests)
-    while i < len(tests):
-        if not tests[i].startswith('test_'):
-            tests.remove(tests[i])
-        else:
-            i+=1
+    # while i < len(tests):
+    #     if not tests[i].startswith('test_'):
+    #         tests.remove(tests[i])
+    #     else:
+    #         i+=1
+    tests = removentests(tests)
     # print(tests)
     modules = []
     for testf in tests:
@@ -114,8 +142,12 @@ def main():
             for assertion in test:
                 failed = assertion[0] == 1
                 lineno = assertion[1]
-                print('Failed' if failed else 'Passed')
-                print(get_lines_around(fname, lineno))
+                if failed:
+                    methodtests = removentests(inspect.getmembers(testcase(), predicate=inspect.ismethod), f=False)
+                    method = methodtests[t[2].index(test)]
+                    #print(method)
+                    print('Failed in', method[0], 'in', testcase.__name__)
+                    print(get_lines_around(fname, lineno))
         tests_run += t[0]
         testcasesr.append(t[2])
         if t[1] == False:
