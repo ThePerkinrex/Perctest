@@ -99,3 +99,6 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# program tests
+test_pyst.py
