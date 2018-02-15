@@ -38,7 +38,9 @@ class TestCase:
             self.add_result(1, lineno);  # This is not equal
 
     def add_result(self, r, ln):
-        currtestr.append((r, ln))
+        #print('Appending', (r,ln))
+        perctest.__main__.currtestr.append((r, ln))
+        #print(currtestr)
 
 def decor_results(r):
     res = []
@@ -103,13 +105,14 @@ def test_cases(a):
             if tmethod[0].startswith('test_'):
                 tests_run += 1
                 tfunc = getattr(a, tmethod[0])
-                print(tfunc)
+                #print(tfunc)
                 tfunc()
-                print("Result for " + tmethod[0] + " in " + a.__class__.__name__ + ": " + str(decor_results(currtestr)))
-                test_caser.append(currtestr.copy())
-                if r_contains(currtestr, 1):
+                #print("Result for " + tmethod[0] + " in " + a.__class__.__name__ + ": " + str(decor_results(perctest.__main__.currtestr)))
+                test_caser.append(perctest.__main__.currtestr.copy())
+                if r_contains(perctest.__main__.currtestr, 1):
                     ok = False
-                currtestr.clear()
+                #print(perctest.__main__.currtestr)
+                perctest.__main__.currtestr = []
     else:
         raise TypeError(inspect.getmro(a), TestCase, perctest.__main__.TestCase)
     return (tests_run, ok, test_caser)
@@ -137,7 +140,7 @@ def main():
             testcases.append(testcase[1])
 
     # Run testcases
-    testcases_run = 0
+    testcases_run = -1
     testcasesr = []
     tests_run = 0
     succeded = True
@@ -153,7 +156,7 @@ def main():
                     methodtests = removentests(inspect.getmembers(testcase(), predicate=inspect.ismethod), f=False)
                     method = methodtests[t[2].index(test)]
                     #print(method)
-                    print('\033[0m\033[1;30;41mFailed in', method[0]+'()', 'in', testcase.__name__,'\033[0m')
+                    print('\033[0m\033[1;30;41mFailed @ def', method[0]+'()', 'in class', testcase.__name__, 'in', fname,'\033[0m')
                     print(get_lines_around(fname, lineno))
         tests_run += t[0]
         testcasesr.append(t[2])
@@ -168,9 +171,17 @@ def main():
         tcstr = 'testcase'
     print('Ran ' + str(tests_run) + ' ' + tstr + ' in ' + str(testcases_run), tcstr)
     if succeded:
-        print('OK')
+        print('')
+        print('         \033[0m\033[1;30;42m                          \033[0m')
+        print('         \033[0m\033[1;30;42m            OK            \033[0m')
+        print('         \033[0m\033[1;30;42m                          \033[0m')
+        print('')
     else:
-        print('Failed')
+        print('')
+        print('         \033[0m\033[1;30;41m                          \033[0m')
+        print('         \033[0m\033[1;30;41m          Failed          \033[0m')
+        print('         \033[0m\033[1;30;41m                          \033[0m')
+        print('')
 
 if __name__ == '__main__':
     main()
