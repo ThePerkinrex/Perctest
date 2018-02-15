@@ -51,17 +51,20 @@ def decor_results(r):
 def get_lines_around(filename, lineno):
     flines = open(filename, mode='r').readlines()
     padding = 5
+    lcolor = '\033[33m'
+    red = '\033[1;31m'
+    reset = '\033[0m'
     # Decorate it
     r0 = ''
-    r1 = ' '*(padding-len('>' + str(lineno)))+'>'+str(lineno)+('|' + flines[lineno-1])
+    r1 = ' '*(padding-len('>' + str(lineno)))+red+'>'+str(lineno)+('|'+flines[lineno-1]+reset)
     r2 = ''
     if lineno < len(flines) and lineno == 1:
-        r2 = ' '*(padding-len(str(lineno+1)))+str(lineno+1)+('|' + flines[lineno])
+        r2 = ' '*(padding-len(str(lineno+1)))+lcolor+str(lineno+1)+('|'+reset+flines[lineno])
     elif lineno == len(flines) and lineno > 1:
-        r0 = ' '*(padding-len(str(lineno-1)))+str(lineno-1)+('|' + flines[lineno-2])
+        r0 = ' '*(padding-len(str(lineno-1)))+lcolor+str(lineno-1)+('|'+reset+flines[lineno-2])
     else:
-        r2 = ' '*(padding-len(str(lineno+1)))+str(lineno+1)+('|' + flines[lineno])
-        r0 = ' '*(padding-len(str(lineno-1)))+str(lineno-1)+('|' + flines[lineno-2])
+        r2 = ' '*(padding-len(str(lineno+1)))+lcolor+str(lineno+1)+('|'+reset+flines[lineno])
+        r0 = ' '*(padding-len(str(lineno-1)))+lcolor+str(lineno-1)+('|'+reset+flines[lineno-2])
     return r0 + r1 + r2
 
 def r_contains(r, w):
@@ -98,14 +101,16 @@ def test_cases(a):
         for tmethod in methods:
             if tmethod[0].startswith('test_'):
                 tests_run += 1
-                getattr(a, tmethod[0])()
+                tfunc = getattr(a, tmethod[0])
+                #print(tfunc)
+                tfunc()
                 #print("Result for " + tmethod[0] + " in " + a.__class__.__name__ + ": " + str(decor_results(currtestr)))
                 test_caser.append(currtestr.copy())
                 if r_contains(currtestr, 1):
                     ok = False
                 currtestr.clear()
     else:
-        raise TypeError
+        raise TypeError(inspect.getmro(a), TestCase)
     return (tests_run, ok, test_caser)
 
 def main():
@@ -146,7 +151,7 @@ def main():
                     methodtests = removentests(inspect.getmembers(testcase(), predicate=inspect.ismethod), f=False)
                     method = methodtests[t[2].index(test)]
                     #print(method)
-                    print('Failed in', method[0], 'in', testcase.__name__)
+                    print('\033[0m\033[1;30;41mFailed in', method[0]+'()', 'in', testcase.__name__,'\033[0m')
                     print(get_lines_around(fname, lineno))
         tests_run += t[0]
         testcasesr.append(t[2])
