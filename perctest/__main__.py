@@ -1,4 +1,4 @@
-import inspect, os, importlib, re, perctest
+import inspect, os, importlib, re, perctest, sys
 currtestr = []
 
 class TestCase:
@@ -130,8 +130,10 @@ def main():
     tests = removentests(tests)
     # print(tests)
     modules = []
+    #print(os.getcwd())
+    sys.path.insert(0,os.getcwd())
     for testf in tests:
-
+        #print(testf)
         modules.append(importlib.import_module(inspect.getmodulename(testf)))
     # print(modules)
     testcases = []
@@ -140,7 +142,7 @@ def main():
             testcases.append(testcase[1])
 
     # Run testcases
-    testcases_run = -1
+    testcases_run = 0
     testcasesr = []
     tests_run = 0
     succeded = True
