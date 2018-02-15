@@ -180,12 +180,14 @@ def main():
         print('         \033[0m\033[1;30;42m            OK            \033[0m')
         print('         \033[0m\033[1;30;42m                          \033[0m')
         print('')
+        exit(0)
     else:
         print('')
         print('         \033[0m\033[1;30;41m                          \033[0m')
         print('         \033[0m\033[1;30;41m          Failed          \033[0m')
         print('         \033[0m\033[1;30;41m                          \033[0m')
         print('')
+        exit(1)
 
 if __name__ == '__main__':
     main()
