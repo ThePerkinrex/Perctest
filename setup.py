@@ -155,7 +155,7 @@ setup(
     # executes the function `main` from this package when invoked:
     entry_points={  # Optional
         'console_scripts': [
-            'perctest=perctest.perctest:main',
+            'perctest=perctest.__main__:main',
         ],
     },
 )
