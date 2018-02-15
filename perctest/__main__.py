@@ -156,7 +156,9 @@ def main():
                     methodtests = removentests(inspect.getmembers(testcase(), predicate=inspect.ismethod), f=False)
                     method = methodtests[t[2].index(test)]
                     #print(method)
+                    print('')
                     print('\033[0m\033[1;30;41mFailed @ def', method[0]+'()', 'in class', testcase.__name__, 'in', fname,'\033[0m')
+                    print('')
                     print(get_lines_around(fname, lineno))
         tests_run += t[0]
         testcasesr.append(t[2])
