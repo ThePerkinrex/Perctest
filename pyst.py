@@ -1,38 +1,43 @@
-import inspect, os, importlib
+import inspect, os, importlib, re
 currtestr = []
 class TestCase:
     def assertEquals(self, a, b):
+        lineno = inspect.currentframe().f_back.f_lineno
         if a == b:
-            self.add_result(0, 'assertEquals('+str(a)+','+str(b)+')');  # Everything OK
+            self.add_result(0, lineno);  # Everything OK
         else:
-            self.add_result(1, 'assertEquals('+str(a)+','+str(b)+')');  # This is not equal
+            self.add_result(1, lineno);  # This is not equal
 
     def assertSame(self, a, b):
+        lineno = inspect.currentframe().f_back.f_lineno
         if a is b:
-            self.add_result(0, 'assertSame('+str(a)+','+str(b)+')');  # Everything OK
+            self.add_result(0, lineno);  # Everything OK
         else:
-            self.add_result(1, 'assertSame('+str(a)+','+str(b)+')');  # This is not equal
+            self.add_result(1, lineno);  # This is not equal
 
     def assertMore(self, a, b):
+        lineno = inspect.currentframe().f_back.f_lineno
         if a > b:
-            self.add_result(0, 'assertMore('+str(a)+','+str(b)+')');  # Everything OK
+            self.add_result(0, lineno);  # Everything OK
         else:
-            self.add_result(1, 'assertMore('+str(a)+','+str(b)+')');  # This is not equal
+            self.add_result(1, lineno);  # This is not equal
 
     def assertLess(self, a, b):
+        lineno = inspect.currentframe().f_back.f_lineno
         if a < b:
-            self.add_result(0, 'assertLess('+str(a)+','+str(b)+')');  # Everything OK
+            self.add_result(0, lineno);  # Everything OK
         else:
-            self.add_result(1, 'assertLess('+str(a)+','+str(b)+')');  # This is not equal
+            self.add_result(1, lineno);  # This is not equal
 
     def assertNone(self, a):
+        lineno = inspect.currentframe().f_back.f_lineno
         if a is None:
-            self.add_result(0, 'assertNone('+str(a)+')');  # Everything OK
+            self.add_result(0, lineno);  # Everything OK
         else:
-            self.add_result(1, 'assertNone('+str(a)+')');  # This is not equal
+            self.add_result(1, lineno);  # This is not equal
 
-    def add_result(self, r, m):
-        currtestr.append((r, m))
+    def add_result(self, r, ln):
+        currtestr.append((r, ln))
 
 def decor_results(r):
     res = []
@@ -43,6 +48,10 @@ def decor_results(r):
             res.append('Failed')
     return res
 
+def get_lines_around(filename, lineno):
+    flines = open(filename, mode='r').readlines()
+    return str(lineno) + ('|' + flines[lineno-1])
+
 def r_contains(r, w):
     res = False
     for c in r:
@@ -52,6 +61,7 @@ def r_contains(r, w):
     return res
 
 def test_cases(a):
+    test_caser = []
     tests_run = 0
     ok = True
     if isinstance(a, TestCase) or issubclass(a, TestCase):
@@ -63,12 +73,13 @@ def test_cases(a):
                 tests_run += 1
                 getattr(a, tmethod[0])()
                 print("Result for " + tmethod[0] + " in " + a.__class__.__name__ + ": " + str(decor_results(currtestr)))
+                test_caser.append(currtestr.copy())
                 if r_contains(currtestr, 1):
                     ok = False
                 currtestr.clear()
     else:
         raise TypeError
-    return (tests_run, ok)
+    return (tests_run, ok, test_caser)
 
 def main():
     # Get testcases
@@ -92,12 +103,21 @@ def main():
 
     # Run testcases
     testcases_run = 0
+    testcasesr = []
     tests_run = 0
     succeded = True
     for testcase in testcases:
         testcases_run += 1
         t = test_cases(testcase)
+        fname = inspect.getfile(testcase)
+        for test in t[2]:
+            for assertion in test:
+                failed = assertion[0] == 1
+                lineno = assertion[1]
+                print('Failed' if failed else 'Passed')
+                print(get_lines_around(fname, lineno))
         tests_run += t[0]
+        testcasesr.append(t[2])
         if t[1] == False:
             succeded = False
             break
